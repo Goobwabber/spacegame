@@ -1,69 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Generation;
 
-public class planetBehavior : MonoBehaviour {
-    public PlanetData[] planets;
-    public GameObject viewer;
-    public float viewDistance;
-    static public float G_viewDistance;
-    private PlanetData[] lastPlanets = new PlanetData[]{};
+public class PlanetBehavior : MonoBehaviour {
 
-	// void Start () {
-    //     if(planets != lastPlanets) {
-    //         foreach (var item in planets){
-    //             Planet.AddPlanetToQueue(
-    //                 item.newName, 
-    //                 item.position, 
-    //                 item.seed, 
-    //                 item.generateRandomSeed, 
-    //                 item.terrainStyle, 
-    //                 item.seaLevel, 
-    //                 item.generationData, 
-    //                 item.ColorPerLayer, 
-    //                 item.population, 
-    //                 item.material, 
-    //                 item.seaMaterial, 
-    //                 item.radius, 
-    //                 item.subdivisions, 
-    //                 item.chunckSubdivisions
-    //             );
+    public string planetName;
+    public int seed;
+    public int radius;
+    public GeneratorBundle generator;
+    public PaletteBundle palette;
+    public float rotationSpeed;
 
-    //             Planet.StartDataQueue();
-    //         }
-    //         lastPlanets = planets;
-    //     }
-	// }
+    private Planet planet;
+
+	void Start () {
+		planet = new Planet(
+            gameObject.transform,
+            planetName,
+            seed,
+            radius,
+            generator,
+            palette
+        );
+
+        planet.createTerrain();
+	}
 	
+
 	void Update () {
-        if(planets != lastPlanets) {
-            foreach (var item in planets){
-                Planet.AddPlanetToQueue(
-                    item.newName, 
-                    item.position, 
-                    item.seed, 
-                    item.generateRandomSeed, 
-                    item.terrainStyle, 
-                    item.seaLevel, 
-                    item.generationData, 
-                    item.ColorPerLayer, 
-                    item.population, 
-                    item.material, 
-                    item.seaMaterial, 
-                    item.radius, 
-                    item.subdivisions, 
-                    item.chunckSubdivisions
-                );
-
-                Planet.StartDataQueue();
-            }
-            lastPlanets = planets;
-        }
-
-		G_viewDistance = viewDistance;
-        Planet.InstantiateIntoWorld();
-        Planet.HideAndShow(viewer.transform.position);
+		transform.Rotate(new Vector3(0, rotationSpeed, 0), Space.Self);
 	}
 }
-

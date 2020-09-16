@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Generation;
 
 public class CameraBehavior : MonoBehaviour {
 
@@ -47,6 +48,8 @@ public class CameraBehavior : MonoBehaviour {
         if (GetComponent<Rigidbody>()){
             GetComponent<Rigidbody>().freezeRotation = true;
         }
+
+        distance += target.GetComponent<PlanetBehavior>().radius;
     }
 
     void Update() {
@@ -57,25 +60,23 @@ public class CameraBehavior : MonoBehaviour {
     }
 
     void LateUpdate() {
-        //Quaternion fromRotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
-        // if (Input.GetMouseButtonDown(0)) {
-        //     Instantiate(personPrefab, fromRotation * new Vector3(0.0f, 0.0f, -3f) + hit.point, fromRotation);
-        // }
 
         cursorRayCast();
         zoomDistanceCast();
         updateCamera();
+        updateTerrain();
 
         if (Input.GetMouseButtonDown(0) && hoveredTile) {
-            Vector3 direction = (target.position - transform.position).normalized;
-            Instantiate(personPrefab, -direction*2f + hoverPos, Quaternion.LookRotation(transform.up, transform.forward));
+            Vector3 direction = (target.position - hoverPos).normalized;
+            GameObject person = Instantiate(personPrefab, -direction*2f + hoverPos, Quaternion.LookRotation(new Vector3(direction.y, -direction.x, 0), direction)) as GameObject;
+            person.transform.parent = hoverTile.transform.parent.parent;
         }
     }
 
     private void cursorRayCast() {
         Ray ray = GameObject.Find("Camera").GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-        if(Physics.Raycast(ray, out hit, 50, selectionLayers)) {
+        if(Physics.Raycast(ray, out hit, selectionRadius, selectionLayers)) {
             hoveredTile = true;
             hoverPos = hit.point;
 
@@ -119,6 +120,11 @@ public class CameraBehavior : MonoBehaviour {
             velocityX = Mathf.Lerp(velocityX, 0, Time.deltaTime * smoothness);
             velocityY = Mathf.Lerp(velocityY, 0, Time.deltaTime * smoothness);
         }
+    }
+
+    private void updateTerrain() {
+        TerrainGen.InstantiateIntoWorld();
+        TerrainGen.HideAndShow(new Vector3(0,0,0));
     }
 
     public static float ClampAngle(float angle, float min, float max) {

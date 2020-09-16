@@ -47,17 +47,21 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\CameraBehavior.cs" />
+     <Compile Include="Assets\Generation\Terrain\ColorHeight.cs" />
+     <Compile Include="Assets\Generation\Terrain\GenerationData.cs" />
+     <Compile Include="Assets\Generation\Terrain\Polygon.cs" />
+     <Compile Include="Assets\Generation\Terrain\PopulateData.cs" />
+     <Compile Include="Assets\Generation\Terrain\TerrainGen.cs" />
      <Compile Include="Assets\People\PersonBehavior.cs" />
-     <Compile Include="Assets\Procedural-planet-generation-master\Scripts\ColorHeight.cs" />
-     <Compile Include="Assets\Procedural-planet-generation-master\Scripts\GenerationData.cs" />
-     <Compile Include="Assets\Procedural-planet-generation-master\Scripts\Planet.cs" />
-     <Compile Include="Assets\Procedural-planet-generation-master\Scripts\PlanetData.cs" />
-     <Compile Include="Assets\Procedural-planet-generation-master\Scripts\Polygon.cs" />
-     <Compile Include="Assets\Procedural-planet-generation-master\Scripts\PopulateData.cs" />
-     <Compile Include="Assets\planetBehavior.cs" />
+     <Compile Include="Assets\PlanetBehavior.cs" />
+     <Compile Include="Assets\Planets\GeneratorBundle.cs" />
+     <Compile Include="Assets\Planets\PaletteBundle.cs" />
+     <Compile Include="Assets\Planets\Planet.cs" />
+     <Compile Include="Assets\SatelliteBehavior.cs" />
+     <None Include="Assets\Outline\OutlineLag.shader" />
      <None Include="Assets\Outline\UltimateOutline.shader" />
      <None Include="Assets\Outline\UltimateOutlineShadows.shader" />
-     <None Include="Assets\Planets\Planet1\SurfaceShader.shader" />
+     <None Include="Assets\Planets\Materials\SurfaceShader.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
