@@ -49,7 +49,8 @@ public class CameraBehavior : MonoBehaviour {
             GetComponent<Rigidbody>().freezeRotation = true;
         }
 
-        distance += target.GetComponent<PlanetBehavior>().radius;
+        //distance += target.GetComponent<PlanetBehavior>().radius;
+        distance += target.GetComponent<StarBehavior>().radius;
     }
 
     void Update() {

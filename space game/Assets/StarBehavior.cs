@@ -2,28 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlanetBehavior : MonoBehaviour {
+public class StarBehavior : MonoBehaviour {
 
-    public string planetName;
+    public string starName;
     public int seed;
     public int radius;
     public TerrainType terrain;
     public Palette palette;
     public float rotationSpeed;
 
-    private Planet planet;
+    private Star star;
 
 	void Start () {
-		planet = new Planet(
+		star = new Star(
             gameObject.transform,
-            planetName,
+            starName,
             seed,
             radius,
             terrain,
             palette
         );
 
-        planet.createTerrain();
+        star.createTerrain();
+        star.createLight();
 	}
 	
 
