@@ -35,6 +35,8 @@ namespace Generation
         private bool instantiate = false;
         // Face is active.
         private bool showing = false;
+        private MeshFilter meshFilter;
+        private MeshFilter seaMeshFilter;
 
         /// <summary>
         /// Get the middle points and add them to the list.
@@ -495,7 +497,7 @@ namespace Generation
                 t_vertices = new List<Vector3>() { v[vertices[0]], v[vertices[1]], v[vertices[2]] };
                 t_triangles = new List<int>() { 0,1,2 };
                 meshData = new MeshData(t_vertices, t_triangles, t_colors);
-                TerrainGen.AddPolygonToQueue(this);
+                //TerrainGen.AddPolygonToQueue(this);
                 return;
             }
 
@@ -759,6 +761,7 @@ namespace Generation
             }
             // Assign the mesh data.
             meshData = new MeshData(t_vertices, t_triangles, t_colors);
+
             TerrainGen.AddPolygonToQueue(this);
         }
         /// <summary>
@@ -768,15 +771,12 @@ namespace Generation
         {
             if (instantiate)
                 return;
+
             // Instantiate the gameobject.
             face = new GameObject();
             face.name = "Terrain Chunck";
-            face.layer = 8;
             face.transform.parent = planet.transform;
-            MeshFilter mesh_filter = face.AddComponent<MeshFilter>();
-            MeshCollider collider = face.AddComponent<MeshCollider>();
-            MeshRenderer renderer = face.AddComponent<MeshRenderer>();
-            renderer.material = planet.GetMaterial();
+            meshFilter = face.AddComponent<MeshFilter>();
 
             // Apply the mesh to the object.
             Mesh mesh = new Mesh();
@@ -786,31 +786,25 @@ namespace Generation
             mesh.RecalculateBounds();
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();
-            mesh_filter.mesh = mesh;
-            collider.sharedMesh = mesh;
+            meshFilter.mesh = mesh;
 
             if(seaMeshData != null)
             {
                 // Instantiate the gameobject.
                 seaFace = new GameObject();
                 seaFace.name = "Sea";
-                seaFace.layer = 4;
-                seaFace.transform.parent = face.transform;
-                MeshFilter sea_mesh_filter = seaFace.AddComponent<MeshFilter>();
-                MeshCollider sea_collider = seaFace.AddComponent<MeshCollider>();
-                MeshRenderer sea_renderer = seaFace.AddComponent<MeshRenderer>();
-                sea_renderer.material = planet.GetSeaMaterial();
+                seaFace.transform.parent = planet.transform;
+                seaMeshFilter = seaFace.AddComponent<MeshFilter>();
 
                 // Apply the mesh to the object.
-                Mesh sea_mesh = new Mesh();
-                sea_mesh.vertices = seaMeshData.vertices.ToArray();
-                sea_mesh.triangles = seaMeshData.triangles.ToArray();
-                sea_mesh.colors = seaMeshData.colors.ToArray();
-                sea_mesh.RecalculateBounds();
-                sea_mesh.RecalculateNormals();
-                sea_mesh.RecalculateTangents();
-                sea_mesh_filter.mesh = sea_mesh;
-                sea_collider.sharedMesh = sea_mesh;
+                Mesh seaMesh = new Mesh();
+                seaMesh.vertices = seaMeshData.vertices.ToArray();
+                seaMesh.triangles = seaMeshData.triangles.ToArray();
+                seaMesh.colors = seaMeshData.colors.ToArray();
+                seaMesh.RecalculateBounds();
+                seaMesh.RecalculateNormals();
+                seaMesh.RecalculateTangents();
+                seaMeshFilter.mesh = seaMesh;
             }
 
             PopulateData[] population = planet.GetPopulation();
@@ -857,6 +851,18 @@ namespace Generation
         public bool GetShowing()
         {
             return showing;
+        }
+        public MeshFilter GetMeshFilter() {
+            return meshFilter;
+        }
+        public MeshFilter GetSeaMeshFilter() {
+            return seaMeshFilter;
+        }
+        public GameObject GetFace() {
+            return face;
+        }
+        public GameObject GetSeaFace() {
+            return seaFace;
         }
     }
     public class MeshData

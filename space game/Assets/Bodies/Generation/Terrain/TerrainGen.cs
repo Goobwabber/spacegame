@@ -19,6 +19,7 @@ namespace Generation
         // List where we store all the planets.
         static private List<TerrainGen> planetList = new List<TerrainGen>();
         // Queue where we add the polygons that need to be instantiate.
+        static private Queue<TerrainGen> planetsToInstantiate = new Queue<TerrainGen>();
         static private Queue<Polygon> polygonsToInstantiate = new Queue<Polygon>();
         // List of polygons instantiated.
         static List<Polygon> distanceList = new List<Polygon>();
@@ -36,6 +37,9 @@ namespace Generation
         // Stores a reference to its own 
         // to pass it to the polygons.
         private TerrainGen planet;
+        private GameObject planetObj;
+        private GameObject surfaceObj;
+        private GameObject seaObj;
         // Terrain style for the planet.
         private Style terrainStyle;
         // Array of noises that will 
@@ -101,6 +105,9 @@ namespace Generation
 
                         poly.GenerateMesh();
                     }
+
+                    // Add planet to completed queue.
+                    TerrainGen.AddPlanetToQueue(planet);
                 }
             }
             isThreadDone = true;
@@ -128,15 +135,27 @@ namespace Generation
             return true; //d0 < Main.G_viewDistance || d1 < Main.G_viewDistance || d2 < Main.G_viewDistance;
         }
         /// <summary>
+        /// Add a planet to the Instantiate queue.
+        /// </summary>
+        /// <param name="poly"> The planet that need to be added. </param>
+        static public void AddPlanetToQueue(TerrainGen planet)
+        {
+            lock (planetsToInstantiate)
+            {
+                // Add to end of the queue.
+                planetsToInstantiate.Enqueue(planet);
+            }
+        }
+        /// <summary>
         /// Add a polygon to the Instantiate queue.
         /// </summary>
         /// <param name="poly"> The polygon that need to be added. </param>
-        static public void AddPolygonToQueue(Polygon poly)
+        static public void AddPolygonToQueue(Polygon polygon)
         {
             lock (polygonsToInstantiate)
             {
                 // Add to end of the queue.
-                polygonsToInstantiate.Enqueue(poly);
+                polygonsToInstantiate.Enqueue(polygon);
             }
         }
         /// <summary>
@@ -173,9 +192,28 @@ namespace Generation
             obj.transform.position = position;
             TerrainGen planet = obj.AddComponent<TerrainGen>();
             planet.planet = planet;
+            planet.planetObj = obj;
             int new_seed = randomSeed == true ? UnityEngine.Random.Range(0, int.MaxValue) : seed;
             planet.InstantiatePlanetVariables(new_seed, terrainStyle, seaLevel, generationData, colorHeight, population, material, seaMaterial, randomColoring, radius, subdivisions, chunckSubdivisions);
             planet.position = position;
+
+            // Instantiate a gameobject that holds the surface polygons.
+            GameObject surface = new GameObject();
+            surface.name = "Surface";
+            surface.transform.parent = obj.transform;
+            surface.AddComponent<MeshFilter>();
+            MeshRenderer renderer = surface.AddComponent<MeshRenderer>();
+            renderer.material = material;
+            planet.surfaceObj = surface;
+
+            // Instantiate a gameobject that holds the sea polygons.
+            GameObject sea = new GameObject();
+            sea.name = "Sea";
+            sea.transform.parent = obj.transform;
+            sea.AddComponent<MeshFilter>();
+            MeshRenderer seaRenderer = sea.AddComponent<MeshRenderer>();
+            seaRenderer.material = seaMaterial;
+            planet.seaObj = sea;
 
             // Add the planet to the list of planets.
             planetList.Add(planet);
@@ -204,10 +242,16 @@ namespace Generation
             // Instantiate the polygons into the scene while been added to the queue.
             while (polygonsToInstantiate.Count != 0)
             {
-                Polygon poly = polygonsToInstantiate.Dequeue();
-                poly.Instantiate();
-                // Add it to the list for later modification.
-                distanceList.Add(poly);
+                Polygon polygon = polygonsToInstantiate.Dequeue();
+                polygon.Instantiate();
+            }
+
+            // Instantiate the planets into the scene while been added to the queue.
+            while (planetsToInstantiate.Count != 0)
+            {
+                TerrainGen planet = planetsToInstantiate.Dequeue();
+                planet.CombineSurfaceMeshes();
+                planet.CombineSeaMeshes();
             }
         }
         /// <summary>
@@ -215,27 +259,27 @@ namespace Generation
         /// if they are in range of the viewer.
         /// </summary>
         /// <param name="viewer"> Position tto check if the polygon is in range. </param>
-        static public void HideAndShow(Vector3 viewer)
-        {
-            // Wait to the secondary thread to end for avoid errors.
-            if (!isThreadDone)
-                return;
+        // static public void HideAndShow(Vector3 viewer)
+        // {
+        //     // Wait to the secondary thread to end for avoid errors.
+        //     if (!isThreadDone)
+        //         return;
 
-            // if distanceList is empty fill it.
-            if(!terrainInstantiated)
-                while (polygonsToInstantiate.Count != 0)
-                    distanceList.Add(polygonsToInstantiate.Dequeue());
+        //     // if distanceList is empty fill it.
+        //     if(!terrainInstantiated)
+        //         while (polygonsToInstantiate.Count != 0)
+        //             distanceList.Add(polygonsToInstantiate.Dequeue());
 
-            foreach (var item in distanceList)
-            {
-                // if polygon is in range to the viewer instantiate.
-                // if(PolyInRange(item, viewer))
-                    item.Show();
-                // else hide it.
-                // else
-                //     item.Hide();
-            }
-        }
+        //     foreach (var item in distanceList)
+        //     {
+        //         // if polygon is in range to the viewer instantiate.
+        //         // if(PolyInRange(item, viewer))
+        //             item.Show();
+        //         // else hide it.
+        //         // else
+        //         //     item.Hide();
+        //     }
+        // }
         /// <summary>
         /// Set the vairables to the values.
         /// </summary>
@@ -403,6 +447,47 @@ namespace Generation
                 offset[i].y = rng.Next(-10000, 10000);
                 offset[i].z = rng.Next(-10000, 10000);
             }
+        }
+        /// <summary>
+        /// Combines surface meshes into one mesh.
+        /// </summary>
+        private void CombineSurfaceMeshes() {
+            Polygon[] polys = polygons.ToArray();
+            CombineInstance[] combine = new CombineInstance[polys.Length];
+
+            int i = 0;
+            while (i < polys.Length)
+            {
+                combine[i].mesh = polys[i].GetMeshFilter().mesh;
+                combine[i].transform = polys[i].GetMeshFilter().transform.localToWorldMatrix;
+                Destroy(polys[i].GetFace());
+                i++;
+            }
+            surfaceObj.transform.GetComponent<MeshFilter>().mesh = new Mesh();
+            surfaceObj.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
+        }
+        /// <summary>
+        /// Combines sea meshes into one mesh.
+        /// </summary>
+        private void CombineSeaMeshes() {
+            Polygon[] polys = polygons.ToArray();
+            List<CombineInstance> combine = new List<CombineInstance>();
+
+            int i = 0;
+            while (i < polys.Length)
+            {
+                if (polys[i].GetSeaMeshFilter() != null) {
+                    CombineInstance cInstance = new CombineInstance();
+                    cInstance.mesh = polys[i].GetSeaMeshFilter().mesh;
+                    cInstance.transform = polys[i].GetSeaMeshFilter().transform.localToWorldMatrix;
+                    combine.Add(cInstance);
+                    Destroy(polys[i].GetSeaFace());
+                }
+
+                i++;
+            }
+            seaObj.transform.GetComponent<MeshFilter>().mesh = new Mesh();
+            seaObj.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine.ToArray());
         }
         /// <summary>
         /// If the game try to quit.
