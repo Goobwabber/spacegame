@@ -13,8 +13,7 @@ public class SatelliteBehavior : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        objectRadius = target.GetComponent<PlanetBehavior>().radius;
-        objectRadius = target.GetComponent<StarBehavior>().radius;
+        objectRadius = target.GetComponent<BodyBehavior>().radius;
     }
 	
 	// Update is called once per frame

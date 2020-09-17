@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Palette", menuName = "Bodies/Palette", order = 2)]
+[CreateAssetMenu(fileName = "Palette", menuName = "Bodies/Terrain/Palette", order = 2)]
 public class Palette : ScriptableObject {
     [Tooltip("Colors for the terrain.")]
     public ColorHeight[] colors;

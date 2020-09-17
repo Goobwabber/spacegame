@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Generation
 {
-    [CreateAssetMenu(fileName = "GenerationData", menuName = "Bodies/Data/GenerationData", order = 1)]
+    [CreateAssetMenu(fileName = "GenerationData", menuName = "Bodies/Terrain/GenerationData", order = 1)]
     public class GenerationData : ScriptableObject
     {
         [Range(1, 10)]

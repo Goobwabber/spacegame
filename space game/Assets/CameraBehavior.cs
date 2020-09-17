@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Generation;
+using Unity.Collections;
 
 public class CameraBehavior : MonoBehaviour {
 
     // Settings
 	public Transform target;
-    public float distance = 100.0f;
+    public float distance = 30.0f;
     public float distanceSensorRadius = 10f;
     public float smoothness = 2f;
     public LayerMask selectionLayers;
     public float selectionRadius = 75;
-    public Material selectionMaterial;
     public Object personPrefab;
 
     // Speed Multipliers
@@ -34,8 +34,8 @@ public class CameraBehavior : MonoBehaviour {
     float velocityY = 0.0f;
 
     // Cursor Hover Data
-    Renderer hoverTile;
     Vector3 hoverPos;
+    Transform hoverObject;
     bool hoveredTile = false;
 
     // Use this for initialization
@@ -49,15 +49,7 @@ public class CameraBehavior : MonoBehaviour {
             GetComponent<Rigidbody>().freezeRotation = true;
         }
 
-        distance += target.GetComponent<PlanetBehavior>().radius;
-        distance += target.GetComponent<StarBehavior>().radius;
-    }
-
-    void Update() {
-        if(hoveredTile) {
-            hoverTile.materials = new Material[] { hoverTile.materials[0] };
-            hoveredTile = false;
-        }
+        distance += target.GetComponent<BodyBehavior>().radius;
     }
 
     void LateUpdate() {
@@ -70,7 +62,7 @@ public class CameraBehavior : MonoBehaviour {
         if (Input.GetMouseButtonDown(0) && hoveredTile) {
             Vector3 direction = (target.position - hoverPos).normalized;
             GameObject person = Instantiate(personPrefab, -direction*2f + hoverPos, Quaternion.LookRotation(new Vector3(direction.y, -direction.x, 0), direction)) as GameObject;
-            person.transform.parent = hoverTile.transform.parent.parent;
+            person.transform.parent = hoverObject;
         }
     }
 
@@ -80,12 +72,12 @@ public class CameraBehavior : MonoBehaviour {
         if(Physics.Raycast(ray, out hit, selectionRadius, selectionLayers)) {
             hoveredTile = true;
             hoverPos = hit.point;
-
-            hoverTile = hit.transform.gameObject.GetComponent<Renderer>();
-            hoverTile.materials = new Material[] {
-                hoverTile.material,
-                selectionMaterial
-            };
+            hoverObject = hit.transform.parent.parent;
+        
+            if (hoverObject.GetComponent<BodyBehavior>().bodyType == BodyType.Planet) {
+                Planet planet = (Planet)hoverObject.GetComponent<BodyBehavior>().body;
+                planet.select(hit.triangleIndex, hit.transform.GetComponent<MeshFilter>().mesh);
+            }
         }
     }
 
@@ -110,7 +102,7 @@ public class CameraBehavior : MonoBehaviour {
             Quaternion toRotation = Quaternion.Euler(rotationXAxis, rotationYAxis, 0);
             Quaternion rotation = toRotation;
  
-            distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * zoomMultiplier, minDistance + distanceRadius, maxDistance + distanceRadius);
+            distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * distance/zoomMultiplier, minDistance + distanceRadius, maxDistance + distanceRadius);
 
             Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
             Vector3 position = rotation * negDistance + target.position;

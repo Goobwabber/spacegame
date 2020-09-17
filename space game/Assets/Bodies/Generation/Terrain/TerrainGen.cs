@@ -200,17 +200,21 @@ namespace Generation
             // Instantiate a gameobject that holds the surface polygons.
             GameObject surface = new GameObject();
             surface.name = "Surface";
+            surface.layer = 8;
             surface.transform.parent = obj.transform;
             surface.AddComponent<MeshFilter>();
+            surface.AddComponent<MeshCollider>();
             MeshRenderer renderer = surface.AddComponent<MeshRenderer>();
             renderer.material = material;
             planet.surfaceObj = surface;
 
             // Instantiate a gameobject that holds the sea polygons.
             GameObject sea = new GameObject();
+            sea.layer = 4;
             sea.name = "Sea";
             sea.transform.parent = obj.transform;
             sea.AddComponent<MeshFilter>();
+            sea.AddComponent<MeshCollider>();
             MeshRenderer seaRenderer = sea.AddComponent<MeshRenderer>();
             seaRenderer.material = seaMaterial;
             planet.seaObj = sea;
@@ -465,6 +469,7 @@ namespace Generation
             }
             surfaceObj.transform.GetComponent<MeshFilter>().mesh = new Mesh();
             surfaceObj.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
+            surfaceObj.transform.GetComponent<MeshCollider>().sharedMesh = surfaceObj.transform.GetComponent<MeshFilter>().mesh;
         }
         /// <summary>
         /// Combines sea meshes into one mesh.
@@ -488,6 +493,7 @@ namespace Generation
             }
             seaObj.transform.GetComponent<MeshFilter>().mesh = new Mesh();
             seaObj.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine.ToArray());
+            seaObj.transform.GetComponent<MeshCollider>().sharedMesh = seaObj.transform.GetComponent<MeshFilter>().mesh;
         }
         /// <summary>
         /// If the game try to quit.

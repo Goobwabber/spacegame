@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Generation
 {
-    [CreateAssetMenu(fileName = "PopulateData", menuName = "Bodies/Data/PopulateData", order = 2)]
+    [CreateAssetMenu(fileName = "PopulateData", menuName = "Bodies/Terrain/PopulateData", order = 2)]
     public class PopulateData : ScriptableObject
     {
         // To generate all random numbers.
