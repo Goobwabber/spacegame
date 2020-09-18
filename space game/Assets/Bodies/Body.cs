@@ -79,6 +79,6 @@ public class Body {
     }
 
     public void update() {
-        body.transform.Rotate(new Vector3(0, rotationSpeed, 0), Space.Self);
+        body.transform.Rotate(new Vector3(0, rotationSpeed * Time.deltaTime, 0), Space.Self);
     }
 }
